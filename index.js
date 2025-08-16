@@ -3,22 +3,26 @@ import fetch from "node-fetch";
 
 const app = express();
 
-// GET /rap/:userid
 app.get("/rap/:userid", async (req, res) => {
   const userId = req.params.userid;
   const apiUrl = `https://www.pekora.zip/apisite/users/v1/users/${userId}`;
 
   try {
     const response = await fetch(apiUrl);
+
+    if (!response.ok) {
+      return res.status(500).json({ error: "Failed to fetch external API" });
+    }
+
     const data = await response.json();
 
-    // Grab inventory_rap
-    const inventoryRAP = data.inventory_rap ?? null;
+    // Check if inventory_rap exists
+    const inventoryRAP = data && data.inventory_rap != null ? data.inventory_rap : null;
 
     res.json({ inventory_rap: inventoryRAP });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to fetch RAP" });
+    console.error("Proxy error:", err);
+    res.status(500).json({ error: "Internal proxy error" });
   }
 });
 
